@@ -1,6 +1,9 @@
-const { User,Todos } = require('../models')
-const jwt = require('jsonwebtoken')
 const bcrypt = require('bcryptjs')
+const jwt = require('jsonwebtoken')
+// const Telegraf = require('telegraf')
+const { User,Todos } = require('../models')
+// const bot = new Telegraf('1038156982:AAGcg_B9dAtiZ1YF2T9JTubmTU4yJlXpE4c')
+// bot.launch()
 
 class Controller{
   static postRegister(req,res){
@@ -32,7 +35,6 @@ class Controller{
         */
           const access_token = jwt.sign({id: user.id,email:user.email},process.env.SECRET_KEY)
           return res.status(200).json({access_token})
-
         }
         else{
           return res.status(401).json({message: 'Incorrect email/password'})
@@ -46,6 +48,7 @@ class Controller{
   }
 
   static getTodos(req,res){
+    console.log(req.loggedInUser)
     Todos.findAll({
       include:User
     })
@@ -53,7 +56,7 @@ class Controller{
       res.json(data)
     })
     .catch(err =>{
-      res.status(500).json()
+      res.status(500).json('Internal Server Error')
     })
   }
   static postTodos(req,res){
@@ -62,6 +65,7 @@ class Controller{
       description:req.body.description,
       status:'Not Yet',
       due_date:req.body.due_date,
+      UserId: req.body.UserId,
       createdAt: new Date(),
       updatedAt: new Date()
     })
