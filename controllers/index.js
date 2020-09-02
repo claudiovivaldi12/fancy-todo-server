@@ -6,7 +6,7 @@ const { User,Todos } = require('../models')
 // bot.launch()
 
 class Controller{
-  static postRegister(req,res){
+  static postRegister(req,res,next){
      // res.send('ini register user')
     User.create({
       name: req.body.name,
@@ -16,10 +16,7 @@ class Controller{
     .then(user =>{
       res.status(200).json('Success')
     })
-    .catch(err =>{
-      console.log(err)
-      res.status(500).json(err)
-    })
+    .catch(next)
   }
   static async postLogin(req,res){
     try{
@@ -47,48 +44,57 @@ class Controller{
     }
   }
 
-  static getTodos(req,res){
-    console.log(req.loggedInUser)
-    Todos.findAll({
-      include:User
+  static getTodos(req,res,next){
+    // console.log(req.loggedInUser)
+    User.findOne({
+      where:{
+        id:req.loggedInUser.id
+      }
     })
     .then(data =>{
-      res.json(data)
+        Todos.findAll({
+        where:{
+          UserId:data.id
+        },
+        include:User
+      })
+      .then(data =>{
+        if(data){
+          res.json(data)
+        }
+        else{
+          throw { message : `Sorry There is no id ${req.params.id} in database` , status:404}
+        }
+      })
     })
-    .catch(err =>{
-      res.status(500).json('Internal Server Error')
-    })
+    .catch(next)
   }
-  static postTodos(req,res){
+  static postTodos(req,res,next){
     Todos.create({
       title:req.body.title,
       description:req.body.description,
       status:'Not Yet',
       due_date:req.body.due_date,
-      UserId: req.body.UserId,
+      UserId: req.loggedInUser.id,
       createdAt: new Date(),
       updatedAt: new Date()
     })
     .then(data =>{
       res.status(200).json(data)
     })
-    .catch(err =>{
-      res.status(500).json(err)
-    })
+    .catch(next)
   }
-  static getTodosId(req,res){
+  static getTodosId(req,res,next){
     Todos.findByPk(req.params.id)
     .then(data =>{
       if(data){
         res.status(200).json(data)
       }
       else{
-          res.status(404).json('Not Found')
+          throw { message : `Sorry There is no id ${req.params.id} in database` , status:404}
       }
     })
-    .catch(err =>{
-      res.status(500).json('Internal Server Error')
-    })
+    .catch(next)
   }
   static delTodos(req,res){
     Todos.destroy({
@@ -99,11 +105,9 @@ class Controller{
     .then(data =>{
       res.status(200).json('delete success')
     })
-    .catch(err =>{
-      res.status(500).json('internal server error')
-    })
+    .catch(next)
   }
-  static putTodos(req,res){
+  static putTodos(req,res,next){
     Todos.findeOne({
       where:{
         id:req.params.id
@@ -127,12 +131,10 @@ class Controller{
         })
       }
       else{
-        res.status(404).json('data not found')
+         throw { message : `Sorry There is no id ${req.params.id} in database` , status:400}
       }
     })
-    .catch(err =>{
-      res.status(500).json(err)
-    })
+    .catch(next)
   }
 }
 module.exports = Controller
