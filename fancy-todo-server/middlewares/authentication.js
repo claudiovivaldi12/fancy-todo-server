@@ -12,7 +12,6 @@ function authentication(req,res,next){
     try{
       const payload = jwt.verify(req.headers.token,process.env.SECRET_KEY)
       req.loggedInUser = payload;
-
         next();
     }catch(err){
       console.log('header3')

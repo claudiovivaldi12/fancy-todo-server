@@ -26,10 +26,6 @@ class Controller{
       }
       else{
         if(bcrypt.compareSync(req.body.password,user.password)){
-        /* decoded :{
-          const decoded = jwt.verify(access_token,secret_key)
-        }
-        */
           const access_token = jwt.sign({id: user.id,email:user.email},process.env.SECRET_KEY)
           return res.status(200).json({access_token})
         }
@@ -51,10 +47,10 @@ class Controller{
         id:req.loggedInUser.id
       }
     })
-    .then(data =>{
+    .then(user =>{
         Todos.findAll({
         where:{
-          UserId:data.id
+          UserId:user.id
         },
         include:User
       })
@@ -70,6 +66,8 @@ class Controller{
     .catch(next)
   }
   static postTodos(req,res,next){
+    console.log(req.body);
+    console.log(req.loggedInUser)
     Todos.create({
       title:req.body.title,
       description:req.body.description,
@@ -96,7 +94,7 @@ class Controller{
     })
     .catch(next)
   }
-  static delTodos(req,res){
+  static delTodos(req,res,next){
     Todos.destroy({
       where:{
         id:req.params.id
@@ -108,31 +106,18 @@ class Controller{
     .catch(next)
   }
   static putTodos(req,res,next){
-    Todos.findeOne({
+    console.log('ini body',req.body)
+    Todos.update({
+      title:req.body.title,
+      description:req.body.description,
+      status:req.body.status
+    },{
       where:{
         id:req.params.id
       }
     })
     .then(data =>{
-      if(data){
-        return Todos.update({
-          title:req.body.title,
-          description:req.body.description,
-          status:req.body.status,
-          // due_date:req.body.due_date,
-          updatedAt: new Date()
-        },{
-          where:{
-            id:req.params.id
-          }
-        })
-        .then(data =>{
-          res.status(200).json('update success')
-        })
-      }
-      else{
-         throw { message : `Sorry There is no id ${req.params.id} in database` , status:400}
-      }
+      res.status(200).json('update success')
     })
     .catch(next)
   }
