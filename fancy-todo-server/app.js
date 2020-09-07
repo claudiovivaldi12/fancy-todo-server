@@ -1,4 +1,6 @@
-require('dotenv').config()
+if(process.env.NOD_ENV == "development"){
+  require('dotenv').config()
+}
 const express = require('express')
 const port = 3007
 const app = express()
